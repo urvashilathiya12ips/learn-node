@@ -1,0 +1,95 @@
+{
+	"info": {
+		"_postman_id": "56bd4302-5ec1-434b-90ce-e6d05f6016c8",
+		"name": "data",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26388323"
+	},
+	"item": [
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \r\n    \"email\":\"urvashil.itpath@gmail.com\",\r\n\"password\":\"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n     \"email\":\"urvashil1.itpath@gmail.com\",\r\n\"password\":\"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Authenticat",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjo1MCwiZmlyc3ROYW1lIjoidXJ2YXNoaSIsImxhc3ROYW1lIjoiTGF0aGl5YSIsImVtYWlsIjoidXJ2YXNoaWwxLml0cGF0aEBnbWFpbC5jb20iLCJwYXNzd29yZCI6IiQyYiQxMCROOUdZS0JHR1RXbGluajB4WGY2VUMuaXRLV05TUG1EakRsbmltMm5lNzAxVFhnT3lZaE52TyIsImNyZWF0ZWRBdCI6IjIwMjMtMDMtMjNUMDY6NDA6MzIuMDAwWiIsInVwZGF0ZWRBdCI6IjIwMjMtMDMtMjNUMDY6NDA6MzIuMDAwWiJ9LCJpYXQiOjE2Nzk1NTQ2MTksImV4cCI6MTY3OTU1NDkxOX0.Qm1Pq1ovJqmx2gPuM4_qh9yhmApaViKo1UWA6ABjGk0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"profile"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
