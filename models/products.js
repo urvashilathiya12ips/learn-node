@@ -18,12 +18,13 @@ module.exports = (sequelize, DataTypes) => {
     {
       productName: DataTypes.STRING,
       productPrice: DataTypes.STRING,
-      productDiscription: DataTypes.TEXT,
       productImage: DataTypes.STRING,
-      productLabel: DataTypes.STRING,
-      productSize: DataTypes.STRING,
-      productOffer: DataTypes.STRING,
-      productPath: DataTypes.STRING,
+      productDiscription: DataTypes.STRING,
+      category: DataTypes.STRING,
+      // productLabel: DataTypes.STRING,
+      // productSize: DataTypes.STRING,
+      // productOffer: DataTypes.STRING,
+      // productPath: DataTypes.STRING,
     },
     {
       sequelize,
