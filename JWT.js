@@ -319,7 +319,7 @@ app.post("/add", async (req, res) => {
   });
 });
 
-// app.post("/Register", async (req, res) => {
+// app.post("/register", async (req, res) => {
 //   const { firstName, lastName, email, password } = req.body;
 //   var data = { firstName, lastName, email, password };
 //   console.log(data);
@@ -338,7 +338,7 @@ app.post("/add", async (req, res) => {
 //   }
 // });
 
-app.post("/Register", async (req, res) => {
+app.post("/register", async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
   var data = { firstName, lastName, email, password };
   console.log(data)
@@ -357,7 +357,7 @@ app.post("/Register", async (req, res) => {
   }
 });
 
-// app.post("/Register", async (req, res) => {
+// app.post("/register", async (req, res) => {
 //   const { email, firstName } = req.body;
 //   var data = { email, firstName };
 
@@ -535,7 +535,7 @@ const storage = multer.diskStorage({
 });
 const uploadImg = multer({ storage });
 
-app.post("/Add", uploadImg.single("image"), async (req, res) => {
+app.post("/add-products", uploadImg.single("image"), async (req, res) => {
   console.log(req.file);
   const { productName, productPrice0, productDiscription } = req.body;
   const file = req.file;
@@ -584,7 +584,7 @@ app.get("/Searchproduct", verifyToken, async (req, res) => {
   }
 });
 
-app.get("/AllProduct", async (req, res) => {
+app.get("/all-product", async (req, res) => {
   const productData = await Products.findAll();
   res.json(productData);
 });
