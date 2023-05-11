@@ -91,8 +91,8 @@ app.post("/Register", async (req, res) => {
     if (user) {
       res.send(" user already exits");
     } else {
-      generatedPass = "Urva@1234";
-      // generatePasswordFromEmail(email);
+      const generatedPass = generatePasswordFromEmail(email);
+
       var EncPass = await bcrypt.hash(generatedPass, 10);
       await User.create({ email, firstName, password: EncPass });
       var transporter = nodemailer.createTransport({
