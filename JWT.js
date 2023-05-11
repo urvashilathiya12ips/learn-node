@@ -277,7 +277,7 @@ app.post("/Add", uploadImg.single("image"), async (req, res) => {
   }
 });
 
-app.get("/Serchproduct", verifyToken, async (req, res) => {
+app.get("/searchproduct", async (req, res) => {
   const { name } = req.query;
   try {
     const products = await Products.findAll({
@@ -299,7 +299,7 @@ app.get("/AllProuct", async (req, res) => {
   res.json(productData);
 });
 
-app.get("/categary/:type", async (req, res) => {
+app.get("/category/:type", async (req, res) => {
   const productData = await Products.findAll({
     where: {
       productLabel: req.params.type,
