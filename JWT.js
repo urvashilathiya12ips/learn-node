@@ -3,32 +3,34 @@ const app = express();
 const port = 3000;
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
-var path = require("path");
+const path = require("path");
 const { Products, ProductCart } = require("./models");
 const { User } = require("./models");
 const bcrypt = require("bcrypt");
 const secretKey = "secretkey";
 const crypto = require("crypto");
-const { where, Op } = require("sequelize");
+const { Op } = require("sequelize");
 const db = require("./models/index");
-var generator = require("generate-password");
+const generator = require("generate-password");
+const cors = require("cors");
 const nodemailer = require("nodemailer");
-const Url = "http://localhost:3001";
+// const Url = "http://localhost:3001";
 
 // var request = require('request');
 // Set up Global configuration access
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3001");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, authorization"
-  );
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-  next();
-});
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "http://localhost:3001");
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept, authorization"
+//   );
+//   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+//   next();
+// });
 app.use(express.json());
 app.use(express.static("./photos/"));
+app.use(cors());
 
 // var Data
 // request('https://fakestoreapi.com/products', function (error, response, body) {
