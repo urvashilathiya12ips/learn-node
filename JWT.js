@@ -30,7 +30,7 @@ const nodemailer = require("nodemailer");
 // });
 app.use(express.json());
 app.use(express.static("./photos/"));
-app.use(cors());
+app.use("*", cors());
 
 // var Data
 // request('https://fakestoreapi.com/products', function (error, response, body) {
