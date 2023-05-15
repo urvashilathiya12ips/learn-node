@@ -3,31 +3,34 @@ const app = express();
 const port = 3000;
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
-var path = require("path");
+const path = require("path");
 const { Products, ProductCart } = require("./models");
 const { User } = require("./models");
 const bcrypt = require("bcrypt");
 const secretKey = "secretkey";
 const crypto = require("crypto");
-const { where, Op } = require("sequelize");
+const { Op } = require("sequelize");
 const db = require("./models/index");
-var generator = require("generate-password");
+const generator = require("generate-password");
+const cors = require("cors");
 const nodemailer = require("nodemailer");
-const Url = "http://localhost:3001";
+// const Url = "http://localhost:3001";
 
 // var request = require('request');
 // Set up Global configuration access
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3001");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, authorization"
-  );
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-  next();
-});
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "http://localhost:3001");
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept, authorization"
+//   );
+//   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+//   next();
+// });
 app.use(express.json());
+app.use(express.static("./photos/"));
+app.use("*", cors());
 
 // var Data
 // request('https://fakestoreapi.com/products', function (error, response, body) {
@@ -36,7 +39,7 @@ app.use(express.json());
 //      }
 // })
 
-//Product add in database
+// Product add in database
 // app.post("/add", async (req, res) => {
 //   ProductListData.forEach((value) => {
 //     Products.create({
@@ -90,8 +93,8 @@ app.post("/Register", async (req, res) => {
     if (user) {
       res.send(" user already exits");
     } else {
-      generatedPass = "Urva@1234";
-      // generatePasswordFromEmail(email);
+      const generatedPass = generatePasswordFromEmail(email);
+
       var EncPass = await bcrypt.hash(generatedPass, 10);
       await User.create({ email, firstName, password: EncPass });
       var transporter = nodemailer.createTransport({
@@ -138,14 +141,16 @@ function verifyToken(req, res, next) {
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
   var data = { email, password };
-  console.log(">>>>>>>>>", data);
+
   if (!email || !password) {
     res.status(401).send("all filds are required ");
   } else {
     const user = await User.findOne({ where: { email: email } });
+
     if (user === null) {
       res.send("Email Does not exist");
     }
+
     if (user) {
       bcrypt.compare(password, user.password, (err, result) => {
         if (err) {
@@ -154,7 +159,11 @@ app.post("/login", async (req, res) => {
         }
         if (result) {
           jwt.sign({ user }, secretKey, (err, token) => {
-            res.send({ msg: "login successful", token: token });
+            res.send({
+              msg: "login successful",
+              token: token,
+              role: user.role,
+            });
           });
         } else {
           return res.json({ Password: "password was incorect" });
@@ -176,40 +185,40 @@ app.get("/profile", verifyToken, (req, res, next) => {
   });
 });
 
-app.get("/users", async (req, res) => {
-  User.findAll().then((User) => res.json(User));
-});
+// app.get("/users", async (req, res) => {
+//   User.findAll().then((User) => res.json(User));
+// });
 
 //all user
-app.get("/users/:id", verifyToken, (req, res) => {
-  User.findAll({ where: { id: req.params.id } }).then((users) =>
-    res.json(users)
-  );
-});
+// app.get("/users/:id", verifyToken, (req, res) => {
+//   User.findAll({ where: { id: req.params.id } }).then((users) =>
+//     res.json(users)
+//   );
+// });
 
 //update
-app.patch("/users/:id", verifyToken, (req, res) => {
-  User.findByPk(req.params.id).then(function (users) {
-    users
-      .update(req.body, {
-        where: { id: req.params.id },
-      })
-      .then((users) => {
-        res.json(users);
-      });
-  });
-});
+// app.patch("/users/:id", verifyToken, (req, res) => {
+//   User.findByPk(req.params.id).then(function (users) {
+//     users
+//       .update(req.body, {
+//         where: { id: req.params.id },
+//       })
+//       .then((users) => {
+//         res.json(users);
+//       });
+//   });
+// });
 
 //delete
-app.delete("/users/:id", (req, res) => {
-  User.findByPk(req.params.id)
-    .then(function (users) {
-      users.destroy();
-    })
-    .then((users) => {
-      res.sendStatus(200);
-    });
-});
+// app.delete("/users/:id", (req, res) => {
+//   User.findByPk(req.params.id)
+//     .then(function (users) {
+//       users.destroy();
+//     })
+//     .then((users) => {
+//       res.sendStatus(200);
+//     });
+// });
 
 //products
 
@@ -224,18 +233,29 @@ const storage = multer.diskStorage({
 const uploadImg = multer({ storage });
 
 app.post("/Add", uploadImg.single("image"), async (req, res) => {
-  console.log(req.file);
-  const { productName, productPrice0, productDiscription } = req.body;
+  const {
+    productName,
+    productPrice,
+    productDiscription,
+    productLabel,
+    productSize,
+    productOffer,
+    productPath,
+  } = req.body;
   const file = req.file;
   console.log("file :>> ", file);
   var data = {
     productName,
-    productPrice0,
+    productPrice,
     productImage: file.path,
     productDiscription,
+    productLabel,
+    productSize,
+    productSize,
+    productPath,
   };
   console.log(data);
-  if (!productName || !productPrice0 || !productDiscription) {
+  if (!productName || !productPrice || !productDiscription) {
     res.status(401).send("all filds are required ");
   } else {
     const product = await Products.findOne({
@@ -246,16 +266,20 @@ app.post("/Add", uploadImg.single("image"), async (req, res) => {
     } else {
       await Products.create({
         productName,
-        productPrice0,
-        productImage: file.path,
+        productPrice,
+        productImage: file.filename,
         productDiscription,
+        productLabel,
+        productSize,
+        productOffer,
+        productPath,
       });
       res.status(200).send("Product Add succesfully");
     }
   }
 });
 
-app.get("/Serchproduct", verifyToken, async (req, res) => {
+app.get("/searchproduct", async (req, res) => {
   const { name } = req.query;
   try {
     const products = await Products.findAll({
@@ -277,7 +301,7 @@ app.get("/AllProuct", async (req, res) => {
   res.json(productData);
 });
 
-app.get("/categary/:type", async (req, res) => {
+app.get("/category/:type", async (req, res) => {
   const productData = await Products.findAll({
     where: {
       productLabel: req.params.type,
@@ -316,8 +340,25 @@ app.post("/productCart/:id", verifyToken, async (req, res, next) => {
   if (productGet == null) {
     res.send("product Was not found");
   } else {
-    res.send("Product Add Into cart Successfully");
-    await ProductCart.create({ ProductId: req.params.id, UserId: userid });
+    // await ProductCart.create({ ProductId: req.params.id, UserId: userid });
+    await ProductCart.findOrCreate({
+      where: { ProductId: req.params.id, UserId: userid },
+      defaults: { quantity: 1 },
+    })
+      .then(([productCart, created]) => {
+        if (!created) {
+          // ProductCart already exists, update the quantity
+          productCart.quantity += 1;
+          return productCart.save();
+        }
+      })
+      .then(() => {
+        res.send("Product Add Into cart Successfully");
+      })
+      .catch((error) => {
+        // Handle the error
+        res.send(error);
+      });
   }
 });
 
@@ -327,18 +368,43 @@ app.get("/allCartData", verifyToken, async (req, res, next) => {
     userid = AunthenticateData.user.id;
   });
   const AllCartDAta = await ProductCart.findAll({
-    attributes: ["ProductId"],
+    attributes: ["ProductId", "quantity"],
     where: { UserId: userid },
   });
-
   if (AllCartDAta.length !== 0) {
     const productCart = await Products.findAll({
       where: { id: { [Op.in]: AllCartDAta.map((p) => p.ProductId) } },
     });
     res.send(productCart);
   } else {
-    res.send("No Cart Data");
+    res.send([]);
   }
+});
+
+app.get("/getQuntity", verifyToken, async (req, res, next) => {
+  const AllCartDAta = await ProductCart.findAll({
+    attributes: ["ProductId", "quantity"],
+  });
+  res.send(AllCartDAta);
+});
+
+app.get("/decrementQuntity/:id", verifyToken, async (req, res, next) => {
+  ProductCart.findOne({
+    where: { ProductId: req.params.id },
+  })
+    .then((productCart) => {
+      if (productCart) {
+        return productCart.decrement("quantity");
+      }
+    })
+    .then(() => {
+      // Success
+      res.send("success");
+    })
+    .catch((error) => {
+      // Handle the error
+      res.send(error);
+    });
 });
 
 app.delete("/DeleteProduct/:id", verifyToken, (req, res) => {
@@ -348,6 +414,9 @@ app.delete("/DeleteProduct/:id", verifyToken, (req, res) => {
     })
     .then((product) => {
       res.status(200).send("Product Delete succefully");
+    })
+    .catch((error) => {
+      res.status(503).send("Product Dosn't exists");
     });
 });
 
