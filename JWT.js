@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = 3000;
+const port = 5000;
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
@@ -104,10 +104,9 @@ app.post("/Register", async (req, res) => {
           pass: "rjfhsbwlwtkihvey",
         },
       });
-
       var mailOptions = {
         from: "urvashil.itpath@gmail.com",
-        to: "urvashil9723@gmail.com",
+        to: email,
         subject: "Your Authntication Password",
         text: "Your Password is :-   " + generatedPass,
       };
