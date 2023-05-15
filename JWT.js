@@ -73,7 +73,7 @@ app.use("*", cors());
 //     }
 //   }
 // });
-
+//mail fix
 app.post("/Register", async (req, res) => {
   const { email, firstName } = req.body;
   var data = { email, firstName };
