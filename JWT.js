@@ -4,8 +4,7 @@ const port = 5000;
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
-const { Products, ProductCart } = require("./models");
-const { User } = require("./models");
+const { Products, ProductCart, User, Order, Order_detail } = require("./models");
 const bcrypt = require("bcrypt");
 const secretKey = "secretkey";
 const crypto = require("crypto");
@@ -39,7 +38,7 @@ app.use("*", cors());
 //      }
 // })
 
-// Product add in database
+//Product add in database
 // app.post("/add", async (req, res) => {
 //   ProductListData.forEach((value) => {
 //     Products.create({
@@ -123,14 +122,28 @@ app.post("/Register", async (req, res) => {
   }
 });
 
+
+
+
 function verifyToken(req, res, next) {
   const bearerHeader = req.headers["authorization"];
   if (typeof bearerHeader !== "undefined") {
     const bearer = bearerHeader.split(" ");
     const token = bearer[1];
     req.token = token;
-    next();
-  } else {
+    jwt.verify(req.token, secretKey, (err, AunthenticateData) => {
+      if (err) {
+        return res.status(503).send({
+          result: "Invalid token",
+        });
+      } else {
+        req.user = AunthenticateData;
+
+      }
+    });
+    next()
+  }
+  else {
     return res.send({
       result: "Token is not valid",
     });
@@ -318,17 +331,17 @@ app.get("/Setcategary/:offer", async (req, res) => {
   res.json(productData);
 });
 
-// app.patch("/products/:id", verifyToken, (req, res) => {
-//   Products.findByPk(req.params.id).then(function (product) {
-//     product
-//       .update(req.body, {
-//         where: { id: req.params.id },
-//       })
-//       .then((product) => {
-//         res.json(product);
-//       });
-//   });
-// });
+app.patch("/products/:id", verifyToken, (req, res) => {
+  Products.findByPk(req.params.id).then(function (product) {
+    product
+      .update(req.body, {
+        where: { id: req.params.id },
+      })
+      .then((product) => {
+        res.json(product);
+      });
+  });
+});
 
 var userid;
 app.post("/productCart/:id", verifyToken, async (req, res, next) => {
@@ -418,6 +431,69 @@ app.delete("/DeleteProduct/:id", verifyToken, (req, res) => {
       res.status(503).send("Product Dosn't exists");
     });
 });
+
+app.post("/order", verifyToken, async (req, res) => {
+  let user_id = req.user.user.id
+
+  //finding user product form cart
+  let productlist = await ProductCart.findAll({ where: { UserId: user_id } })
+  console.log(productlist)
+  if (!productlist.length > 0) {
+    return handleNotFound(res, "At least one product required in cart");
+  }
+  try {
+
+    const Neworder = await Order.create({ user_id: user_id })
+    const order_id = Neworder.dataValues.id;
+    console.log(order_id)
+
+    for (const ProductCart of productlist) {
+
+      let product_id = ProductCart.ProductId
+      await Order_detail.create(
+        {
+          order_id,
+          product_id
+        }
+      )
+    }
+    return res.status(201).send({
+      message: 'Order Created',
+      order_id: Neworder.dataValues.id//taking order_id from newOrder
+    })
+  } catch (error) {
+    return res.status(400).send({
+      message: error
+    })
+  }
+
+})
+
+app.get("/getorderbyid/:orderid", verifyToken, async (req, res) => {
+  let order_id = req.params.orderid
+  try {
+    let UserOrder = await Order_detail.findAll({ order_id })
+    return res.status(200).send({ UserOrder })
+  } catch (e) {
+    return res.status(400).send({
+      message: error
+    })
+  }
+})
+
+app.get("/getusersorder", verifyToken, async (req, res) => {
+  try {
+    let user_id = req.user.user.id;
+    console.log(user_id)
+    let UserOrder = await Order.findAll({ user_id })
+    console.log(UserOrder);
+    return res.status(200).send({ UserOrder })
+  } catch (error) {
+    return res.status(400).send({
+      message: error
+    })
+  }
+})
 
 db.sequelize.sync().then(() => {
   console.log("🔄 All models were synchronized successfully.");
