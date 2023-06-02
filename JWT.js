@@ -4,7 +4,7 @@ const port = 5000;
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
-const { Products, ProductCart, User, Order, Order_detail } = require("./models");
+const { Products, ProductCarts, User, Order, Order_detail } = require("./models");
 const bcrypt = require("bcrypt");
 const secretKey = "secretkey";
 const crypto = require("crypto");
@@ -346,7 +346,7 @@ app.patch("/products/:id", verifyToken, (req, res) => {
 });
 
 var userid;
-app.post("/productCart/:id", verifyToken, async (req, res, next) => {
+app.post("/ProductCarts/:id", verifyToken, async (req, res, next) => {
   jwt.verify(req.token, secretKey, (err, AunthenticateData) => {
     userid = AunthenticateData.user.id;
   });
@@ -354,16 +354,16 @@ app.post("/productCart/:id", verifyToken, async (req, res, next) => {
   if (productGet == null) {
     res.send("product Was not found");
   } else {
-    // await ProductCart.create({ ProductId: req.params.id, UserId: userid });
-    await ProductCart.findOrCreate({
+    // await ProductCarts.create({ ProductId: req.params.id, UserId: userid });
+    await ProductCarts.findOrCreate({
       where: { ProductId: req.params.id, UserId: userid },
       defaults: { quantity: 1 },
     })
-      .then(([productCart, created]) => {
+      .then(([ProductCarts, created]) => {
         if (!created) {
-          // ProductCart already exists, update the quantity
-          productCart.quantity += 1;
-          return productCart.save();
+          // ProductCarts already exists, update the quantity
+          ProductCarts.quantity += 1;
+          return ProductCarts.save();
         }
       })
       .then(() => {
@@ -381,34 +381,34 @@ app.get("/allCartData", verifyToken, async (req, res, next) => {
   jwt.verify(req.token, secretKey, (err, AunthenticateData) => {
     userid = AunthenticateData.user.id;
   });
-  const AllCartDAta = await ProductCart.findAll({
+  const AllCartDAta = await ProductCarts.findAll({
     attributes: ["ProductId", "quantity"],
     where: { UserId: userid },
   });
   if (AllCartDAta.length !== 0) {
-    const productCart = await Products.findAll({
+    const ProductCarts = await Products.findAll({
       where: { id: { [Op.in]: AllCartDAta.map((p) => p.ProductId) } },
     });
-    res.send(productCart);
+    res.send(ProductCarts);
   } else {
     res.send([]);
   }
 });
 
 app.get("/getQuntity", verifyToken, async (req, res, next) => {
-  const AllCartDAta = await ProductCart.findAll({
+  const AllCartDAta = await ProductCarts.findAll({
     attributes: ["ProductId", "quantity"],
   });
   res.send(AllCartDAta);
 });
 
 app.get("/decrementQuntity/:id", verifyToken, async (req, res, next) => {
-  ProductCart.findOne({
+  ProductCarts.findOne({
     where: { ProductId: req.params.id },
   })
-    .then((productCart) => {
-      if (productCart) {
-        return productCart.decrement("quantity");
+    .then((ProductCarts) => {
+      if (ProductCarts) {
+        return ProductCarts.decrement("quantity");
       }
     })
     .then(() => {
@@ -422,7 +422,7 @@ app.get("/decrementQuntity/:id", verifyToken, async (req, res, next) => {
 });
 
 app.delete("/DeleteProduct/:id", verifyToken, (req, res) => {
-  ProductCart.findByPk(req.params.id)
+  ProductCarts.findByPk(req.params.id)
     .then(function (product) {
       product.destroy();
     })
@@ -438,7 +438,7 @@ app.post("/order", verifyToken, async (req, res) => {
   let user_id = req.user.user.id
 
   //finding user product form cart
-  let productlist = await ProductCart.findAll({ where: { UserId: user_id } })
+  let productlist = await ProductCarts.findAll({ where: { UserId: user_id } })
   console.log(productlist)
   if (!productlist.length > 0) {
     return res.send(res, "At least one product required in cart");
@@ -449,9 +449,9 @@ app.post("/order", verifyToken, async (req, res) => {
     const order_id = Neworder.dataValues.id;
     console.log(order_id)
 
-    for (const ProductCart of productlist) {
+    for (const ProductCarts of productlist) {
 
-      let product_id = ProductCart.ProductId
+      let product_id = ProductCarts.ProductId
       await Order_detail.create(
         {
           order_id,
@@ -459,7 +459,7 @@ app.post("/order", verifyToken, async (req, res) => {
         }
       )
     }
-    await ProductCart.destroy({
+    await ProductCarts.destroy({
       where: {
         UserId: user_id
       }
