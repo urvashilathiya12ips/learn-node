@@ -21,13 +21,9 @@ module.exports = (sequelize, DataTypes) => {
             Order.belongsTo(models.User, {
                 foreignKey: 'user_id',
                 onDelete: 'CASCADE',
-
             })
-
-           
         }
     }
-
     Order.init({
 
     }, {

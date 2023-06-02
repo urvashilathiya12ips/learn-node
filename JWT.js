@@ -13,6 +13,8 @@ const db = require("./models/index");
 const generator = require("generate-password");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
+const orders = require("./models/orders");
+const order_details = require("./models/order_details");
 // const Url = "http://localhost:3001";
 
 // var request = require('request');
@@ -439,7 +441,7 @@ app.post("/order", verifyToken, async (req, res) => {
   let productlist = await ProductCart.findAll({ where: { UserId: user_id } })
   console.log(productlist)
   if (!productlist.length > 0) {
-    return handleNotFound(res, "At least one product required in cart");
+    return res.send(res, "At least one product required in cart");
   }
   try {
 
@@ -457,6 +459,11 @@ app.post("/order", verifyToken, async (req, res) => {
         }
       )
     }
+    await ProductCart.destroy({
+      where: {
+        UserId: user_id
+      }
+    })
     return res.status(201).send({
       message: 'Order Created',
       order_id: Neworder.dataValues.id//taking order_id from newOrder
@@ -471,12 +478,23 @@ app.post("/order", verifyToken, async (req, res) => {
 
 app.get("/getorderbyid/:orderid", verifyToken, async (req, res) => {
   let order_id = req.params.orderid
+  let user_id = req.user.user.id;
   try {
-    let UserOrder = await Order_detail.findAll({ order_id })
+    const UserOrder = await Order_detail.findAll({
+      where: {
+        order_id: order_id,
+      },
+      include: [
+        {
+          model: Products,
+        },
+      ],
+    });
+    console.log(UserOrder)
     return res.status(200).send({ UserOrder })
   } catch (e) {
     return res.status(400).send({
-      message: error
+      msg: "somthing went worng"
     })
   }
 })
@@ -486,8 +504,23 @@ app.get("/getusersorder", verifyToken, async (req, res) => {
     let user_id = req.user.user.id;
     console.log(user_id)
     let UserOrder = await Order.findAll({ user_id })
-    console.log(UserOrder);
-    return res.status(200).send({ UserOrder })
+    const ordersWithDetails = await Promise.all(
+      UserOrder.map(async (order) => {
+        const orderDetails = await Order_detail.findAll({
+          where: {
+            order_id: order.id,
+          },
+          include: [
+            {
+              model: Products,
+            },
+          ],
+        });
+        return { order, orderDetails };
+      })
+
+    );
+    return res.status(200).send([ordersWithDetails])
   } catch (error) {
     return res.status(400).send({
       message: error
