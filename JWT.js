@@ -259,7 +259,7 @@ app.post("/Add", uploadImg.single("image"), async (req, res) => {
   const file = req.file;
   console.log('file', file)
   if (file === undefined) {
-    res.status(401).send("Image Cant not Empty");
+    return res.send("Image Cant not Empty");
   }
   else {
     var data = {
@@ -273,7 +273,7 @@ app.post("/Add", uploadImg.single("image"), async (req, res) => {
     };
 
     if (!productName || !productPrice || !productDiscription || !productLabel) {
-      res.status(401).send("all filds are required ");
+      return res.send("all filds are required ");
     } else {
       const product = await Products.findOne({
         where: { productName: productName },
