@@ -254,41 +254,44 @@ app.post("/Add", uploadImg.single("image"), async (req, res) => {
     productLabel,
     productSize,
     productOffer,
-    productPath,
+
   } = req.body;
   const file = req.file;
-  console.log("file :>> ", file);
-  var data = {
-    productName,
-    productPrice,
-    productImage: file.path,
-    productDiscription,
-    productLabel,
-    productSize,
-    productSize,
-    productPath,
-  };
-  console.log(data);
-  if (!productName || !productPrice || !productDiscription) {
-    res.status(401).send("all filds are required ");
-  } else {
-    const product = await Products.findOne({
-      where: { productName: productName },
-    });
-    if (product) {
-      res.send(" product already exits");
+  console.log('file', file)
+  if (file === undefined) {
+    res.status(401).send("Image Cant not Empty");
+  }
+  else {
+    var data = {
+      productName,
+      productPrice,
+      productImage: file.path,
+      productDiscription,
+      productLabel,
+      productSize,
+      productOffer
+    };
+
+    if (!productName || !productPrice || !productDiscription || !productLabel) {
+      res.status(401).send("all filds are required ");
     } else {
-      await Products.create({
-        productName,
-        productPrice,
-        productImage: file.filename,
-        productDiscription,
-        productLabel,
-        productSize,
-        productOffer,
-        productPath,
+      const product = await Products.findOne({
+        where: { productName: productName },
       });
-      res.status(200).send("Product Add succesfully");
+      if (product) {
+        res.send(" product already exits");
+      } else {
+        await Products.create({
+          productName,
+          productPrice,
+          productImage: file.filename,
+          productDiscription,
+          productLabel,
+          productSize,
+          productOffer,
+        });
+        res.status(200).send("Product Add succesfully");
+      }
     }
   }
 });
