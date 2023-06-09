@@ -157,7 +157,7 @@ app.post("/login", async (req, res) => {
   var data = { email, password };
 
   if (!email || !password) {
-    res.status(401).send("all filds are required ");
+    res.send("all filds are required ");
   } else {
     const user = await User.findOne({ where: { email: email } });
 
@@ -186,6 +186,94 @@ app.post("/login", async (req, res) => {
     }
   }
 });
+
+
+
+app.post("/forgot", async (req, res) => {
+  const { email, siteurl } = req.body;
+  try {
+    let user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      return res.send('User not found');
+    }
+    const resetToken = await generateResetToken();
+    user.forgot_token = resetToken;
+    await user.save()
+
+    const resetLink = `${siteurl}?token=${resetToken}`;
+    await sendResetEmail(user.email, resetLink);
+    return res.status(200).send({ message: 'Reset password email sent', token: resetToken });
+  } catch (error) {
+    console.log(error)
+
+    return res.status(404).send({ message: 'somthng Went wrong' });
+  }
+});
+
+
+app.post("/resetpassword", async (req, res) => {
+  const { token, password } = req.body;
+  try {
+    const user = await User.findOne({ where: { forgot_token: token } });
+
+    if (!user) {
+      return res.send('Invalid reset token');
+    }
+    const Reset_bcrypt_Password = await bcrypt.hash(password, 10);
+    user.password = Reset_bcrypt_Password;
+    user.forgotToken = null;
+    await user.save()
+
+    return res.send("Password Reset Successfully")
+  } catch (error) {
+    console.log(error)
+    return res.send("somthing went wrong");
+  }
+});
+
+const generateResetToken = () => {
+  return new Promise((resolve, reject) => {
+    crypto.randomBytes(20, (err, buffer) => {
+      if (err) {
+        reject(err);
+      } else {
+        const resetToken = buffer.toString('hex');
+        console.log(resetToken)
+        resolve(resetToken);
+      }
+    });
+  });
+};
+
+const sendResetEmail = async (recipientEmail, resetLink) => {
+  try {
+    // Create a transporter using your email service provider's SMTP settings
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      secure: false, // Set to true if using a secure connection (e.g., SSL/TLS)
+      auth: {
+        user: 'urvashil.itpath@gmail.com',
+        pass: 'rjfhsbwlwtkihvey',
+      },
+    });
+
+    // Compose the email message
+    const message = {
+      from: 'abc@gmail.com',
+      to: recipientEmail,
+      subject: 'Password Reset',
+      html: `<h2>Click <a href="${resetLink}">here</a> to reset your password.</h2>`,
+    };
+
+    // Send the email
+    const info = await transporter.sendMail(message);
+    console.log(`Reset email sent to ${recipientEmail}. Message ID: ${info.messageId}`);
+  } catch (error) {
+    console.error('Error sending reset email:', error);
+  }
+};
+
 
 app.get("/profile", verifyToken, (req, res, next) => {
   jwt.verify(req.token, secretKey, (err, AunthenticateData) => {

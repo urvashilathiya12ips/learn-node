@@ -12,10 +12,10 @@ module.exports = (sequelize, DataTypes) => {
       User.belongsToMany(models.Products, {
         through: models.ProductCart,
       });
-      User.hasMany(models.Order,{
+      User.hasMany(models.Order, {
         foreignKey: 'user_id',
         onDelete: 'CASCADE'
-    });
+      });
     }
   }
   User.init(
@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       firstName: DataTypes.STRING,
       email: DataTypes.STRING,
       password: DataTypes.STRING,
+      forgot_token: DataTypes.STRING,
     },
     {
       sequelize,
